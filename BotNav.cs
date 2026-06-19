@@ -162,17 +162,17 @@ public partial class BotNavPlugin : BasePlugin
                 continue;
             }
 
-            // Follow mode: re-point goal at leader position every cycle. Leader dead → stop.
+            // Follow mode: re-point goal at leader position every cycle.
             if (entry.FollowSlot.HasValue)
             {
                 var leaderCtrl = Utilities.GetPlayerFromSlot(entry.FollowSlot.Value);
-                if (leaderCtrl == null || !leaderCtrl.IsValid || !leaderCtrl.PawnIsAlive)
+                if (leaderCtrl == null || !leaderCtrl.IsValid)
                 {
                     _controlled.Remove(slot);
                     continue;
                 }
                 var leaderPawn = leaderCtrl.PlayerPawn.Value;
-                if (leaderPawn == null || !leaderPawn.IsValid || leaderPawn.AbsOrigin == null)
+                if (leaderPawn == null || !leaderPawn.IsValid || leaderPawn.AbsOrigin == null || leaderPawn.Health <= 0)
                 {
                     _controlled.Remove(slot);
                     continue;
@@ -379,7 +379,7 @@ public partial class BotNavPlugin : BasePlugin
     // Other plugins can call these after adding a <Reference> to BotNav.dll:
     //
     //   <Reference Include="BotNav">
-    //     <HintPath>..\..\BotNav\bin\Debug\net8.0\BotNav.dll</HintPath>
+    //     <HintPath>..\..\BotNav\bin\Release\net8.0\BotNav.dll</HintPath>
     //     <Private>false</Private>
     //   </Reference>
     //
@@ -677,7 +677,7 @@ public partial class BotNavPlugin : BasePlugin
 
         foreach (var p in Utilities.GetPlayers())
         {
-            if (p == null || !p.IsValid || !p.PawnIsAlive || p.IsHLTV)
+            if (p == null || !p.IsValid || p.IsHLTV)
                 continue;
             if ((int)p.TeamNum == 1)
                 continue;

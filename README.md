@@ -35,6 +35,7 @@ Applicable to all commands that take a `<target>` argument:
 
 - Route types (optional, default `fastest`): `0`/`default`, `1`/`fastest`, `2`/`safest`, `3`/`retreat`
 - Bombsite Index (in most cases): `0`/`A Site`, `1`/`B Site`
+- A dead player who **took over a bot** must be referenced as <leader> using the bot's name, not the dead player's name.
 
 ### Read
 

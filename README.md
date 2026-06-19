@@ -50,10 +50,10 @@ Applicable to all commands that take a `<target>` argument:
 | Command | Usage | Description |
 |---------|-------|-------------|
 | `bot_nav_setroute` | `<target> <0-3>` | Change route style of active MoveTo |
-| `bot_nav_settask` | `<target> <0-21>` | Write task type (objective enum) |
+| `bot_nav_settask` | `<target> <0-21>` | Write task type ([objective enum](https://github.com/ed0ard/CS2-Bot-Nav/blob/fcf7702c6b2e6c9aa83ad44db78e9321367e721d/NavTaskEntity.cs#L16-L37)) |
 
 ## Installation
-1. Download the latest **BotNav.zip** from [Releases](https://github.com/ed0ard/CS2-Bot-Nav/releases).
+1. Download the latest **BotNav.dll** from [Releases](https://github.com/ed0ard/CS2-Bot-Nav/releases).
 
 2. Extract the folder and upload it to `game/csgo/addons/counterstrikesharp/plugins` on your server.
 
@@ -127,7 +127,7 @@ public class MyPlugin : BasePlugin
 | `Hold(int slot)` | `void` | Hold a single bot around their current position |
 | `Release(int slot)` | `bool` | Release a single bot. Returns `true` if it was controlled |
 | `SetRoute(int slot, RouteType route)` | `bool` | Change route style of active MoveTo in place |
-| `SetTask(int slot, int taskType)` | `bool` | Write task type (objective enum, 0-21) |
+| `SetTask(int slot, int taskType)` | `bool` | Write task type ([objective enum](https://github.com/ed0ard/CS2-Bot-Nav/blob/fcf7702c6b2e6c9aa83ad44db78e9321367e721d/NavTaskEntity.cs#L16-L37), 0-21) |
 
 **Read**
 

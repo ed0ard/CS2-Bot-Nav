@@ -379,7 +379,7 @@ public partial class BotNavPlugin : BasePlugin
     // Other plugins can call these after adding a <Reference> to BotNav.dll:
     //
     //   <Reference Include="BotNav">
-    //     <HintPath>..\..\BotNav\bin\Debug\net8.0\publish\BotNav.dll</HintPath>
+    //     <HintPath>..\..\BotNav\bin\Debug\net8.0\BotNav.dll</HintPath>
     //     <Private>false</Private>
     //   </Reference>
     //

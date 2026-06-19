@@ -72,7 +72,7 @@ Consumers reference `BotNav.dll` at build time and call the API at runtime.
 ```xml
 <ItemGroup>
   <Reference Include="BotNav">
-    <HintPath>..\..\BotNav\bin\Debug\net8.0\publish\BotNav.dll</HintPath>
+    <HintPath>..\..\BotNav\bin\Debug\net8.0\BotNav.dll</HintPath>
     <Private>false</Private>
   </Reference>
 </ItemGroup>

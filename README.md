@@ -29,6 +29,7 @@ Applicable to all commands that take a `<target>` argument:
 |---------|-------|-------------|
 | `bot_nav_setgoal` | `<target> <x> <y> <z> [route]` | Set bot navigation goal to world position |
 | `bot_nav_movetosite` | `<target> <0\|1>` | Set bot navigation goal to bombsite by index |
+| `bot_nav_follow` | `<followers> <leader>` | Follower bots track leader's position in real time (leader: one player or bot) |
 | `bot_nav_hold` | `<target>` | Hold bot around current position |
 | `bot_nav_release` | `<target>` | Release bot back to state machine control |
 

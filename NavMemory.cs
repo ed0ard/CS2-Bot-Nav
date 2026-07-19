@@ -21,16 +21,17 @@ internal static class NavMem
     public static int TaskEntity;          // CHandle : entity bound to current task
     public static int Task;                // int     : TaskType enum (= TaskEntity - 4)
     public static int PathIndex;           // int     : index of next path node
-    public static int PathLength;          // int     : number of nodes in m_path (= PathIndex - 0x88)
-    public static int PathBase;            // ConnectInfo m_path[256] base (= PathIndex - 0x4888)
+    public static int PathLength;          // int     : number of nodes in m_path (= PathIndex - 0x80)
+    public static int PathBase;            // Path::Segment m_path[256] base (= PathIndex - 0x4880)
     public static int AreaEnteredTimestamp;// float
 
     // --- constant intra-struct layout -------------------------------------
-    public const int ConnectInfoStride = 0x48;  // sizeof(ConnectInfo)
+    public const int PathSegmentStride = 0x48;  // sizeof(Path::Segment)
     public const int PathCount         = 256;   // MAX_PATH_LENGTH
-    public const int ElemHow           = 0x04;  // ConnectInfo.how    (int NavTraverseType: how this node is entered)
-    public const int ElemPos           = 0x2C;  // ConnectInfo.pos    (Vector: world goal point of this node)
-    public const int ElemAreaId        = 0x3C;  // ConnectInfo.areaId (int: nav-area id resolved through the nav mesh)
+    public const int ElemHow           = 0x00;  // Path::Segment.how    (int NavTraverseType: how this node is entered)
+    public const int ElemType          = 0x04;  // Path::Segment.type   (int SegmentType: how this segment is traversed)
+    public const int ElemPos           = 0x2C;  // Path::Segment.pos    (Vector: world goal point of this node)
+    public const int ElemAreaId        = 0x3C;  // Path::Segment.areaId (int: nav-area id resolved through the nav mesh)
 
     // --- m_moveToState block ----------------------------------------------
     public const int MoveStateGoal  = 0x2E8;    // Vector : the far/requested destination
@@ -50,8 +51,8 @@ internal static class NavMem
             AreaEnteredTimestamp= Schema.GetSchemaOffset("CCSBot", "m_areaEnteredTimestamp");
 
             Task       = TaskEntity - 4;          // TaskType sits immediately before m_taskEntity
-            PathLength = PathIndex  - 0x88;        // constant delta, verified across builds
-            PathBase   = PathIndex  - 0x4888;      // m_path[] base, constant delta
+            PathLength = PathIndex  - 0x80;        // current Path::m_segmentCount delta
+            PathBase   = PathIndex  - 0x4880;      // current Path::m_path[] data delta
 
             Ready = GoalPosition > 0 && PathIndex > 0;
             if (Ready)
@@ -82,8 +83,8 @@ internal static class NavMem
         return new Vector(p[0], p[1], p[2]);
     }
 
-    // Address of ConnectInfo element i within m_path[].
-    public static nint Elem(nint botHandle, int i) => botHandle + PathBase + i * ConnectInfoStride;
+    // Return the address of Path::Segment element i within m_path[]
+    public static nint Elem(nint botHandle, int i) => botHandle + PathBase + i * PathSegmentStride;
 
     // Entry index encoded in a CEntityHandle (lower 15 bits), or -1 if invalid.
     public static int HandleToIndex(uint raw) => raw == InvalidHandle ? -1 : (int)(raw & 0x7FFF);

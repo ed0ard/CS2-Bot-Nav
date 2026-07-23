@@ -15,15 +15,15 @@ public partial class BotNavPlugin
     {
         AddCommand("bot_nav_path",
             "Read current goal, path index/length, endpoint point & nav-area id. Usage: bot_nav_path <target>", CmdNavPath);
-        AddCommand("css_botmove_path",
-            "Read every valid node in the bot's current native path. Usage: css_botmove_path <target>", CmdBotMovePath);
+        AddCommand("bot_nav_fullpath",
+            "Read every valid node in the bot's current native path. Usage: bot_nav_fullpath <target>", CmdBotMovePath);
     }
 
     // Print a validated read-only snapshot of every native path node
     private void CmdBotMovePath(CCSPlayerController? caller, CommandInfo info)
     {
         if (!RequireNavReady(caller)) return;
-        if (info.ArgCount < 2) { Reply(caller, "Usage: css_botmove_path <target>"); return; }
+        if (info.ArgCount < 2) { Reply(caller, "Usage: bot_nav_fullpath <target>"); return; }
 
         var bots = ResolveBots(info.GetArg(1));
         if (bots.Count == 0) { Reply(caller, $"[BotNav] No matching bots for '{info.GetArg(1)}'."); return; }

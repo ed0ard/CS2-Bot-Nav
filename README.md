@@ -44,6 +44,7 @@ Applicable to all commands that take a `<target>` argument:
 | `bot_nav_goal` | `<target>` | Read the requested MoveTo destination and route |
 | `bot_nav_site` | `<target>` | Read which bombsite the bot's goal and position are at |
 | `bot_nav_path` | `<target>` | Read current path: index/length, next node (pos+area+traverse), endpoint |
+| `bot_nav_fullpath` | `<target>` | Read every valid node in the bot's current native path |
 | `bot_nav_task` | `<target>` | Read current task type, task entity, goal entity |
 
 ### Write

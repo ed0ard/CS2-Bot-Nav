@@ -18,8 +18,8 @@ namespace BotNav;
 public partial class BotNavPlugin : BasePlugin
 {
     public override string ModuleName => "BotNav";
-    public override string ModuleVersion => "1.0.0";
-    public override string ModuleAuthor => "ed0ard";
+    public override string ModuleVersion => "1.0.1";
+    public override string ModuleAuthor => "ed0ard & XBribo";
     public override string ModuleDescription => "Per-bot navigation read & control.";
 
     // void CCSBot::MoveTo(CCSBot* this, const Vector* pos, RouteType route)  __fastcall

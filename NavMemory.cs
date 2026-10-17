@@ -21,8 +21,8 @@ internal static class NavMem
     public static int TaskEntity;          // CHandle : entity bound to current task
     public static int Task;                // int     : TaskType enum (= TaskEntity - 4)
     public static int PathIndex;           // int     : index of next path node
-    public static int PathLength;          // int     : number of nodes in m_path (= PathIndex - 0x80)
-    public static int PathBase;            // Path::Segment m_path[256] base (= PathIndex - 0x4880)
+    public static int PathLength;          // int     : number of nodes; platform-specific delta from PathIndex
+    public static int PathBase;            // Path::Segment m_path[256] base; platform-specific delta from PathIndex
     public static int AreaEnteredTimestamp;// float
 
     // --- constant intra-struct layout -------------------------------------
@@ -34,8 +34,8 @@ internal static class NavMem
     public const int ElemAreaId        = 0x3C;  // Path::Segment.areaId (int: nav-area id resolved through the nav mesh)
 
     // --- m_moveToState block ----------------------------------------------
-    public const int MoveStateGoal  = 0x2E8;    // Vector : the far/requested destination
-    public const int MoveStateRoute = 0x2F4;    // int    : RouteType passed to MoveTo()
+    public static readonly int MoveStateGoal  = OperatingSystem.IsLinux() ? 0x2E0 : 0x2E8;
+    public static readonly int MoveStateRoute = OperatingSystem.IsLinux() ? 0x2EC : 0x2F4;
 
     // CEntityHandle invalid sentinel.
     public const uint InvalidHandle = 0xFFFFFFFF;
@@ -51,8 +51,10 @@ internal static class NavMem
             AreaEnteredTimestamp= Schema.GetSchemaOffset("CCSBot", "m_areaEnteredTimestamp");
 
             Task       = TaskEntity - 4;          // TaskType sits immediately before m_taskEntity
-            PathLength = PathIndex  - 0x80;        // current Path::m_segmentCount delta
-            PathBase   = PathIndex  - 0x4880;      // current Path::m_path[] data delta
+            // Linux: index=0x4ED8, count=0x4E60, first segment=0x660.
+            // The Path object starts at 0x658; its first eight bytes are not a segment.
+            PathLength = PathIndex - (OperatingSystem.IsLinux() ? 0x78 : 0x80);
+            PathBase   = PathIndex - (OperatingSystem.IsLinux() ? 0x4878 : 0x4880);
 
             Ready = GoalPosition > 0 && PathIndex > 0;
             if (Ready)

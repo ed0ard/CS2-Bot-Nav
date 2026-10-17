@@ -22,10 +22,12 @@ public partial class BotNavPlugin : BasePlugin
     public override string ModuleAuthor => "ed0ard & XBribo";
     public override string ModuleDescription => "Per-bot navigation read & control.";
 
-    // void CCSBot::MoveTo(CCSBot* this, const Vector* pos, RouteType route)  __fastcall
-    // Signature verified on server.dll 6.2
-    private const string MoveToSignature =
+    // void CCSBot::MoveTo(CCSBot* this, const Vector* pos, RouteType route).
+    private const string MoveToWindowsSignature =
         "F2 0F 10 02 F2 0F 11 81 E8 02 00 00 8B 42 08 48 8D 91 E0 02 00 00 89 81 F0 02 00 00 44 89 81 F4 02 00 00 E9 ? ? ? ?";
+    // Linux x64: RDI=this, RSI=pos, EDX=route; stores goal at +0x2E0 and route at +0x2EC.
+    private const string MoveToLinuxSignature =
+        "48 8B 06 48 89 87 E0 02 00 00 8B 46 08 48 8D B7 D8 02 00 00 89 97 EC 02 00 00 89 87 E8 02 00 00 E9 ? ? ? ?";
 
     // RouteType enum
     public enum RouteType
@@ -66,7 +68,8 @@ public partial class BotNavPlugin : BasePlugin
     {
         try
         {
-            _moveTo = new MemoryFunctionVoid<nint, nint, int>(MoveToSignature);
+            _moveTo = new MemoryFunctionVoid<nint, nint, int>(
+                OperatingSystem.IsLinux() ? MoveToLinuxSignature : MoveToWindowsSignature);
             _moveToReady = true;
         }
         catch (Exception ex)

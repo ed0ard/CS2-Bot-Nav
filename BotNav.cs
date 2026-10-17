@@ -18,7 +18,7 @@ namespace BotNav;
 public partial class BotNavPlugin : BasePlugin
 {
     public override string ModuleName => "BotNav";
-    public override string ModuleVersion => "1.0.1";
+    public override string ModuleVersion => "1.1.0";
     public override string ModuleAuthor => "ed0ard & XBribo";
     public override string ModuleDescription => "Per-bot navigation read & control.";
 

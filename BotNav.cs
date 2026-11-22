@@ -532,17 +532,18 @@ public partial class BotNavPlugin : BasePlugin
         if (!TryGetBot(slot, out var bot, out _, out _))
             return null;
 
-        return ReadPathSummary(bot.Handle, out _);
+        return ReadPathSummary(bot, out _);
     }
 
-    private static NavPathData? ReadPathSummary(nint h, out string error)
+    private static NavPathData? ReadPathSummary(CCSBot bot, out string error)
     {
-        int idx = NavMem.ReadInt(h, NavMem.PathIndex);
+        nint h = bot.Handle;
+        int idx = bot.PathIndex;
         int len = NavMem.ReadInt(h, NavMem.PathLength);
         if (!ValidatePathBounds(idx, len, out error))
             return null;
 
-        var cur = NavMem.ReadVec(h, NavMem.GoalPosition);
+        var cur = bot.GoalPosition;
 
         var data = new NavPathData
         {
@@ -578,20 +579,7 @@ public partial class BotNavPlugin : BasePlugin
         if (!TryGetBot(slot, out var bot, out _, out _))
             return null;
 
-        nint h = bot.Handle;
-        int task     = NavMem.ReadInt(h, NavMem.Task);
-        uint taskEnt = NavMem.ReadUInt(h, NavMem.TaskEntity);
-        uint goalEnt = NavMem.ReadUInt(h, NavMem.GoalEntity);
-
-        return new NavTaskData
-        {
-            TaskType = task,
-            TaskName = TaskName(task),
-            TaskEntityIndex = NavMem.HandleToIndex(taskEnt),
-            TaskEntityName = DescribeHandle(taskEnt),
-            GoalEntityIndex = NavMem.HandleToIndex(goalEnt),
-            GoalEntityName = DescribeHandle(goalEnt),
-        };
+        return ReadTaskSummary(bot);
     }
 
     public NavSiteData? GetSite(int slot)

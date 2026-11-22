@@ -15,15 +15,10 @@ internal static class NavMem
 {
     public static bool Ready { get; private set; }
 
-    // --- schema-resolved field offsets -------------------------------------
-    public static int GoalPosition;        // Vector  : current per-frame steering target
-    public static int GoalEntity;          // CHandle : goal entity (bomb/hostage/...)
-    public static int TaskEntity;          // CHandle : entity bound to current task
-    public static int Task;                // int     : TaskType enum (= TaskEntity - 4)
-    public static int PathIndex;           // int     : index of next path node
-    public static int PathLength;          // int     : number of nodes; delta from PathIndex
-    public static int PathBase;            // Path::Segment m_path[256] base; delta from PathIndex
-    public static int AreaEnteredTimestamp;// float
+    // Native fields relative to schema anchors.
+    public static int Task;
+    public static int PathLength;
+    public static int PathBase;
 
     // --- constant intra-struct layout -------------------------------------
     public const int PathSegmentStride = 0x48;  // sizeof(Path::Segment)
@@ -37,29 +32,19 @@ internal static class NavMem
     public static readonly int MoveStateGoal  = OperatingSystem.IsLinux() ? 0x2E0 : 0x2E8;
     public static readonly int MoveStateRoute = OperatingSystem.IsLinux() ? 0x2EC : 0x2F4;
 
-    // CEntityHandle invalid sentinel.
-    public const uint InvalidHandle = 0xFFFFFFFF;
-
     public static void Resolve(ILogger log)
     {
         try
         {
-            GoalPosition        = Schema.GetSchemaOffset("CCSBot", "m_goalPosition");
-            GoalEntity          = Schema.GetSchemaOffset("CCSBot", "m_goalEntity");
-            TaskEntity          = Schema.GetSchemaOffset("CCSBot", "m_taskEntity");
-            PathIndex           = Schema.GetSchemaOffset("CCSBot", "m_pathIndex");
-            AreaEnteredTimestamp= Schema.GetSchemaOffset("CCSBot", "m_areaEnteredTimestamp");
+            int taskEntity = Schema.GetSchemaOffset("CCSBot", "m_taskEntity");
+            int pathIndex = Schema.GetSchemaOffset("CCSBot", "m_pathIndex");
+            Task       = taskEntity - 4;
+            PathLength = pathIndex - 0x78;
+            PathBase   = pathIndex - 0x4878;
 
-            Task       = TaskEntity - 4;          // TaskType sits immediately before m_taskEntity
-            // Windows and Linux use the same deltas from their schema-resolved path index.
-            PathLength = PathIndex - 0x78;
-            PathBase   = PathIndex - 0x4878;
-
-            Ready = GoalPosition > 0 && PathIndex > 0;
+            Ready = Task > 0 && PathBase > 0;
             if (Ready)
-                log.LogInformation(
-                    $"[BotNav] NavMem resolved: goalPos=0x{GoalPosition:X} goalEnt=0x{GoalEntity:X} " +
-                    $"task=0x{Task:X} pathIndex=0x{PathIndex:X} pathLen=0x{PathLength:X} pathBase=0x{PathBase:X}");
+                log.LogInformation($"[BotNav] NavMem resolved: task=0x{Task:X} pathIndex=0x{pathIndex:X} pathLen=0x{PathLength:X} pathBase=0x{PathBase:X}");
             else
                 log.LogError("[BotNav] NavMem: schema returned invalid offsets; nav read/write disabled.");
         }
@@ -73,7 +58,6 @@ internal static class NavMem
     // --- raw primitives (handle is a live in-process CCSBot*) --------------
     public static unsafe int   ReadInt  (nint h, int off) => *(int*)  (h + off);
     public static unsafe float ReadFloat(nint h, int off) => *(float*)(h + off);
-    public static unsafe uint  ReadUInt (nint h, int off) => *(uint*) (h + off);
 
     public static unsafe void  WriteInt  (nint h, int off, int v)   => *(int*)  (h + off) = v;
     public static unsafe void  WriteFloat(nint h, int off, float v) => *(float*)(h + off) = v;
@@ -87,8 +71,6 @@ internal static class NavMem
     // Return the address of Path::Segment element i within m_path[]
     public static nint Elem(nint botHandle, int i) => botHandle + PathBase + i * PathSegmentStride;
 
-    // Entry index encoded in a CEntityHandle (lower 15 bits), or -1 if invalid.
-    public static int HandleToIndex(uint raw) => raw == InvalidHandle ? -1 : (int)(raw & 0x7FFF);
 }
 
 public partial class BotNavPlugin

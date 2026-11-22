@@ -30,7 +30,7 @@ public partial class BotNavPlugin
 
         foreach (var (bot, controller, _) in bots)
         {
-            if (!TryReadPathSnapshot(bot.Handle, out var snapshot, out var error))
+            if (!TryReadPathSnapshot(bot, out var snapshot, out var error))
             {
                 Reply(caller, $"[BotNav] {controller.PlayerName}: {error}");
                 continue;
@@ -53,14 +53,15 @@ public partial class BotNavPlugin
     }
 
     // Copy the active native path only when its bounds remain stable
-    private static bool TryReadPathSnapshot(nint botHandle, out PathSnapshot snapshot, out string error)
+    private static bool TryReadPathSnapshot(CCSBot bot, out PathSnapshot snapshot, out string error)
     {
+        nint botHandle = bot.Handle;
         snapshot = default;
         error = "path changed while reading";
 
         for (int attempt = 0; attempt < 2; attempt++)
         {
-            int firstIndex = NavMem.ReadInt(botHandle, NavMem.PathIndex);
+            int firstIndex = bot.PathIndex;
             int firstLength = NavMem.ReadInt(botHandle, NavMem.PathLength);
             if (!ValidatePathBounds(firstIndex, firstLength, out error))
                 return false;
@@ -91,7 +92,7 @@ public partial class BotNavPlugin
                     NavMem.ReadInt(element, NavMem.ElemHow));
             }
 
-            int secondIndex = NavMem.ReadInt(botHandle, NavMem.PathIndex);
+            int secondIndex = bot.PathIndex;
             int secondLength = NavMem.ReadInt(botHandle, NavMem.PathLength);
             if (firstIndex == secondIndex && firstLength == secondLength)
             {
@@ -181,7 +182,7 @@ public partial class BotNavPlugin
 
         foreach (var (bot, c, _) in bots)
         {
-            if (ReadPathSummary(bot.Handle, out var error) is not { } path)
+            if (ReadPathSummary(bot, out var error) is not { } path)
             {
                 Reply(caller, $"[BotNav] {c.PlayerName}: {error}");
                 continue;

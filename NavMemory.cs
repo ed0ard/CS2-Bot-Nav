@@ -38,9 +38,9 @@ internal static class NavMem
         {
             int taskEntity = Schema.GetSchemaOffset("CCSBot", "m_taskEntity");
             int pathIndex = Schema.GetSchemaOffset("CCSBot", "m_pathIndex");
-            Task       = taskEntity - 4;
+            Task       = taskEntity - sizeof(int);
             PathLength = pathIndex - 0x78;
-            PathBase   = pathIndex - 0x4878;
+            PathBase   = PathLength - PathCount * PathSegmentStride;
 
             Ready = Task > 0 && PathBase > 0;
             if (Ready)

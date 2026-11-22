@@ -21,8 +21,8 @@ internal static class NavMem
     public static int TaskEntity;          // CHandle : entity bound to current task
     public static int Task;                // int     : TaskType enum (= TaskEntity - 4)
     public static int PathIndex;           // int     : index of next path node
-    public static int PathLength;          // int     : number of nodes; platform-specific delta from PathIndex
-    public static int PathBase;            // Path::Segment m_path[256] base; platform-specific delta from PathIndex
+    public static int PathLength;          // int     : number of nodes; delta from PathIndex
+    public static int PathBase;            // Path::Segment m_path[256] base; delta from PathIndex
     public static int AreaEnteredTimestamp;// float
 
     // --- constant intra-struct layout -------------------------------------
@@ -51,10 +51,9 @@ internal static class NavMem
             AreaEnteredTimestamp= Schema.GetSchemaOffset("CCSBot", "m_areaEnteredTimestamp");
 
             Task       = TaskEntity - 4;          // TaskType sits immediately before m_taskEntity
-            // Linux: index=0x4ED8, count=0x4E60, first segment=0x660.
-            // The Path object starts at 0x658; its first eight bytes are not a segment.
-            PathLength = PathIndex - (OperatingSystem.IsLinux() ? 0x78 : 0x80);
-            PathBase   = PathIndex - (OperatingSystem.IsLinux() ? 0x4878 : 0x4880);
+            // Windows and Linux use the same deltas from their schema-resolved path index.
+            PathLength = PathIndex - 0x78;
+            PathBase   = PathIndex - 0x4878;
 
             Ready = GoalPosition > 0 && PathIndex > 0;
             if (Ready)

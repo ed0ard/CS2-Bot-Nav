@@ -532,17 +532,24 @@ public partial class BotNavPlugin : BasePlugin
         if (!TryGetBot(slot, out var bot, out _, out _))
             return null;
 
-        nint h = bot.Handle;
-        var cur = NavMem.ReadVec(h, NavMem.GoalPosition);
+        return ReadPathSummary(bot.Handle, out _);
+    }
+
+    private static NavPathData? ReadPathSummary(nint h, out string error)
+    {
         int idx = NavMem.ReadInt(h, NavMem.PathIndex);
         int len = NavMem.ReadInt(h, NavMem.PathLength);
+        if (!ValidatePathBounds(idx, len, out error))
+            return null;
+
+        var cur = NavMem.ReadVec(h, NavMem.GoalPosition);
 
         var data = new NavPathData
         {
             Index = idx,
             Length = len,
             CurrentX = cur.X, CurrentY = cur.Y, CurrentZ = cur.Z,
-            HasPath = len > 0 && len <= NavMem.PathCount,
+            HasPath = len > 0,
         };
 
         if (data.HasPath)

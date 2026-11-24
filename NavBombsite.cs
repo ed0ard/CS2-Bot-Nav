@@ -1,7 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
 
 namespace BotNav;
@@ -47,11 +46,11 @@ public partial class BotNavPlugin
         if (sites.Count == 0) return;
 
         // Authoritative once the bomb is down: CPlantedC4.m_nBombSite (0=A,1=B).
-        foreach (var c4 in Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("planted_c4"))
+        foreach (var c4 in Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4"))
         {
             if (c4 == null || !c4.IsValid || c4.AbsOrigin == null) continue;
             int s = NearestSite(sites, c4.AbsOrigin);
-            int n = TryGetSchemaInt(c4.Handle, "CPlantedC4", "m_nBombSite", -1);
+            int n = c4.BombSite;
             if (s >= 0 && n >= 0) sites[Set(sites, s, n == 1 ? 'B' : 'A')] = sites[s];
         }
 
@@ -60,7 +59,7 @@ public partial class BotNavPlugin
         {
             var pawn = p?.PlayerPawn?.Value;
             if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null) continue;
-            int wz = TryGetSchemaInt(pawn.Handle, "CCSPlayerPawn", "m_nWhichBombZone", 0);
+            int wz = pawn.WhichBombZone;
             if (wz != 1 && wz != 2) continue;
             int s = SiteContaining(sites, pawn.AbsOrigin);
             if (s >= 0) Set(sites, s, wz == 2 ? 'B' : 'A');
@@ -113,12 +112,6 @@ public partial class BotNavPlugin
     // it has been calibrated (letter resolution can fail until a pawn/bomb is in a zone).
     private static string SiteLabel(List<Bombsite> sites, int i) =>
         i < 0 ? "none" : $"site {i} ({(sites[i].Letter != '?' ? sites[i].Letter.ToString() : "?")})";
-
-    private static int TryGetSchemaInt(nint handle, string cls, string member, int fallback)
-    {
-        try { return Schema.GetSchemaValue<int>(handle, cls, member); }
-        catch { return fallback; }
-    }
 
     // bot_nav_site <target>
     private void CmdNavSite(CCSPlayerController? caller, CommandInfo info)

@@ -1,4 +1,3 @@
-using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 
@@ -59,13 +58,10 @@ public partial class BotNavPlugin
 
         foreach (var (bot, c, _) in bots)
         {
-            nint h = bot.Handle;
-            int task     = NavMem.ReadInt(h, NavMem.Task);
-            uint taskEnt = NavMem.ReadUInt(h, NavMem.TaskEntity);
-            uint goalEnt = NavMem.ReadUInt(h, NavMem.GoalEntity);
+            var data = ReadTaskSummary(bot);
             Reply(caller,
-                $"[BotNav] {c.PlayerName}: task = {TaskName(task)} ({task})  " +
-                $"taskEntity = {DescribeHandle(taskEnt)}  goalEntity = {DescribeHandle(goalEnt)}");
+                $"[BotNav] {c.PlayerName}: task = {data.TaskName} ({data.TaskType})  " +
+                $"taskEntity = {data.TaskEntityName}  goalEntity = {data.GoalEntityName}");
         }
     }
 
@@ -87,18 +83,19 @@ public partial class BotNavPlugin
         if (bots.Count == 0) Reply(caller, $"[BotNav] No matching bots for '{info.GetArg(1)}'.");
     }
 
-    // Render a CEntityHandle as "<index>:<name>" or "none".
-    private static string DescribeHandle(uint raw)
+    private static NavTaskData ReadTaskSummary(CCSBot bot)
     {
-        int idx = NavMem.HandleToIndex(raw);
-        if (idx < 0) return "none";
-        try
+        int task = NavMem.ReadInt(bot.Handle, NavMem.Task);
+        var (taskIndex, taskName) = DescribeEntity(bot.TaskEntity.Value);
+        var (goalIndex, goalName) = DescribeEntity(bot.GoalEntity.Value);
+        return new NavTaskData
         {
-            var ent = Utilities.GetEntityFromIndex<CBaseEntity>(idx);
-            if (ent != null && ent.IsValid)
-                return $"{idx}:{ent.DesignerName}";
-        }
-        catch { /* index not resolvable */ }
-        return idx.ToString();
+            TaskType = task, TaskName = TaskName(task),
+            TaskEntityIndex = taskIndex, TaskEntityName = taskName,
+            GoalEntityIndex = goalIndex, GoalEntityName = goalName,
+        };
     }
+
+    private static (int Index, string Name) DescribeEntity(CBaseEntity? entity) =>
+        entity == null ? (-1, "none") : ((int)entity.Index, $"{entity.Index}:{entity.DesignerName}");
 }

@@ -30,7 +30,7 @@ public partial class BotNavPlugin
 
         foreach (var (bot, controller, _) in bots)
         {
-            if (!TryReadPathSnapshot(bot.Handle, out var snapshot, out var error))
+            if (!TryReadPathSnapshot(bot, out var snapshot, out var error))
             {
                 Reply(caller, $"[BotNav] {controller.PlayerName}: {error}");
                 continue;
@@ -53,14 +53,15 @@ public partial class BotNavPlugin
     }
 
     // Copy the active native path only when its bounds remain stable
-    private static bool TryReadPathSnapshot(nint botHandle, out PathSnapshot snapshot, out string error)
+    private static bool TryReadPathSnapshot(CCSBot bot, out PathSnapshot snapshot, out string error)
     {
+        nint botHandle = bot.Handle;
         snapshot = default;
         error = "path changed while reading";
 
         for (int attempt = 0; attempt < 2; attempt++)
         {
-            int firstIndex = NavMem.ReadInt(botHandle, NavMem.PathIndex);
+            int firstIndex = bot.PathIndex;
             int firstLength = NavMem.ReadInt(botHandle, NavMem.PathLength);
             if (!ValidatePathBounds(firstIndex, firstLength, out error))
                 return false;
@@ -91,7 +92,7 @@ public partial class BotNavPlugin
                     NavMem.ReadInt(element, NavMem.ElemHow));
             }
 
-            int secondIndex = NavMem.ReadInt(botHandle, NavMem.PathIndex);
+            int secondIndex = bot.PathIndex;
             int secondLength = NavMem.ReadInt(botHandle, NavMem.PathLength);
             if (firstIndex == secondIndex && firstLength == secondLength)
             {
@@ -181,31 +182,25 @@ public partial class BotNavPlugin
 
         foreach (var (bot, c, _) in bots)
         {
-            nint h = bot.Handle;
-            Vector goal = NavMem.ReadVec(h, NavMem.GoalPosition);   // current steering target
-            int idx     = NavMem.ReadInt(h, NavMem.PathIndex);
-            int len     = NavMem.ReadInt(h, NavMem.PathLength);
-
-            if (len <= 0 || len > NavMem.PathCount)
+            if (ReadPathSummary(bot, out var error) is not { } path)
             {
-                Reply(caller, $"[BotNav] {c.PlayerName}: no path. current goal = " +
-                              $"({goal.X:0.#}, {goal.Y:0.#}, {goal.Z:0.#})");
+                Reply(caller, $"[BotNav] {c.PlayerName}: {error}");
                 continue;
             }
 
-            int    nextI    = idx < len ? idx : len - 1;
-            Vector nextPos  = NavMem.ReadVec(NavMem.Elem(h, nextI),   NavMem.ElemPos);
-            int    nextArea = NavMem.ReadInt(NavMem.Elem(h, nextI),   NavMem.ElemAreaId);
-            int    nextHow  = NavMem.ReadInt(NavMem.Elem(h, nextI),   NavMem.ElemHow);
-            Vector endPos   = NavMem.ReadVec(NavMem.Elem(h, len - 1), NavMem.ElemPos);
-            int    endArea  = NavMem.ReadInt(NavMem.Elem(h, len - 1), NavMem.ElemAreaId);
+            if (!path.HasPath)
+            {
+                Reply(caller, $"[BotNav] {c.PlayerName}: no path. current goal = " +
+                              $"({path.CurrentX:0.#}, {path.CurrentY:0.#}, {path.CurrentZ:0.#})");
+                continue;
+            }
 
             Reply(caller,
-                $"[BotNav] {c.PlayerName}: pathIndex={idx}/{len}  " +
-                $"current=({goal.X:0.#},{goal.Y:0.#},{goal.Z:0.#})  " +
-                $"next=({nextPos.X:0.#},{nextPos.Y:0.#},{nextPos.Z:0.#}) area={nextArea} how={NavTraverseName(nextHow)}");
+                $"[BotNav] {c.PlayerName}: pathIndex={path.Index}/{path.Length}  " +
+                $"current=({path.CurrentX:0.#},{path.CurrentY:0.#},{path.CurrentZ:0.#})  " +
+                $"next=({path.NextX:0.#},{path.NextY:0.#},{path.NextZ:0.#}) area={path.NextAreaId} how={path.NextHow}");
             Reply(caller,
-                $"           endpoint=({endPos.X:0.#},{endPos.Y:0.#},{endPos.Z:0.#}) area={endArea}");
+                $"           endpoint=({path.EndX:0.#},{path.EndY:0.#},{path.EndZ:0.#}) area={path.EndpointAreaId}");
         }
     }
 
